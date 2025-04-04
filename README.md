@@ -8,7 +8,7 @@ The current production application can be viewed [here](https://rechrome.vercel.
 
 The ReChrome website gets all Chrome versions and their respective download link from this [list](https://raw.githubusercontent.com/Bugazelle/chromium-all-old-stable-versions/master/chromium.stable.json).
 
-Massive **Thank You** to `@barbietunnie` for making this list public on [GitHub Gist](https://gist.github.com/barbietunnie/a4f8475e0f0566597f7de74394ec7c8b)
+Massive **Thank You** to [`@barbietunnie`](https://github.com/barbietunnie) for making this list public on [GitHub Gist](https://gist.github.com/barbietunnie/a4f8475e0f0566597f7de74394ec7c8b)
 
 ### Contributions
 
@@ -18,10 +18,10 @@ Whilst this is an extremely small project, for those of you that may wish to con
 
 To clone this repository, simply run the following commands in your terminal:
 ```
-1. git clone https://github.com/itzcodex24/rechrome`
-2. cd rechrome`
-3. npm/yarn install`
-4. npm/yarn run dev`
+1. git clone https://github.com/itzcodex24/rechrome
+2. cd rechrome
+3. npm/yarn install
+4. npm/yarn run dev
 ```
 
 Happy Hacking ;)
