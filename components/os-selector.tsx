@@ -22,14 +22,54 @@ import {
   Search,
   Loader2,
 } from "lucide-react"
-import { ChromiumData, Version } from "@/types/types"
+import { Version } from "@/types/types"
+import type { Platforms } from "@/app/api/versions/route"
 
-type OperatingSystem = "win64" | "mac" | "linux64" | "android" | "ios"
+type OperatingSystem = typeof Platforms[number]
 
 interface ChromeVersion {
   version: string
   downloadUrl: string
 }
+
+interface Platform {
+  text: string
+  icon: React.ReactNode
+  os: OperatingSystem
+}
+
+const platforms: Platform[] = [
+  {
+    text: "Android",
+    os: 'android',
+    icon: <Smartphone className="h-12 w-12 mb-2" />
+  },
+  {
+    text: "macOS",
+    os: 'mac',
+    icon: <Apple className="h-12 w-12 mb-2" />
+  },
+  {
+    text: "Windows",
+    os: 'win',
+    icon: <Windows className="h-12 w-12 mb-2" />
+  },
+  {
+    text: "Windows 64",
+    os: 'win64',
+    icon: <Windows className="h-12 w-12 mb-2" />
+  },
+  {
+    text: "Linux",
+    os: 'linux',
+    icon: <Linux className="h-12 w-12 mb-2" />
+  },
+  {
+    text: "Linux 64",
+    os: 'linux64',
+    icon: <Linux className="h-12 w-12 mb-2" />
+  },
+]
 
 export default function OperatingSystemSelector() {
   const [open, setOpen] = useState(false)
@@ -40,14 +80,7 @@ export default function OperatingSystemSelector() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const osToApiParam = {
-    windows: "win64",
-    macos: "mac",
-    linux: "linux64",
-    android: "android",
-    ios: "mac", 
-  }
-  
+
   useEffect(() => {
     if (open) {
       setIsLoading(true)
@@ -56,7 +89,7 @@ export default function OperatingSystemSelector() {
       setError(null)
 
       fetch(`/api/versions?os=${selectedOS}`, {
-        next: { revalidate: 86400 * 3 } 
+        next: { revalidate: 86400 * 3 }
       })
         .then(response => {
           if (!response.ok) {
@@ -65,8 +98,8 @@ export default function OperatingSystemSelector() {
           return response.json()
         })
         .then((data: Version) => {
-          const versions: ChromeVersion[] = Object.entries(data).map(([version, {download_url}]) => ({
-            version, 
+          const versions: ChromeVersion[] = Object.entries(data).map(([version, { download_url }]) => ({
+            version,
             downloadUrl: download_url
           }))
 
@@ -83,7 +116,7 @@ export default function OperatingSystemSelector() {
     }
   }, [open, selectedOS])
 
-  
+
   useEffect(() => {
     if (searchQuery.trim() === "") {
       setFilteredVersions(chromeVersions)
@@ -95,10 +128,8 @@ export default function OperatingSystemSelector() {
     }
   }, [searchQuery, chromeVersions])
 
-  const handleOSSelect = (os: string) => {
-    
-    const apiParam = osToApiParam[os as keyof typeof osToApiParam]
-    setSelectedOS(apiParam as OperatingSystem)
+  const handleOSSelect = (os: OperatingSystem) => {
+    setSelectedOS(os)
     setSearchQuery("")
     setOpen(true)
   }
@@ -107,51 +138,19 @@ export default function OperatingSystemSelector() {
     <div className="space-y-6">
       <h3 className="text-2xl font-semibold">Select Your Operating System</h3>
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <Button
-          variant="outline"
-          className="flex flex-col items-center justify-center h-32 p-4"
-          onClick={() => handleOSSelect("windows")}
-        >
-          <Windows className="h-12 w-12 mb-2" />
-          <span>Windows</span>
-        </Button>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
 
-        <Button
-          variant="outline"
-          className="flex flex-col items-center justify-center h-32 p-4"
-          onClick={() => handleOSSelect("macos")}
-        >
-          <Apple className="h-12 w-12 mb-2" />
-          <span>macOS</span>
-        </Button>
-
-        <Button
-          variant="outline"
-          className="flex flex-col items-center justify-center h-32 p-4"
-          onClick={() => handleOSSelect("linux")}
-        >
-          <Linux className="h-12 w-12 mb-2" />
-          <span>Linux</span>
-        </Button>
-
-        <Button
-          variant="outline"
-          className="flex flex-col items-center justify-center h-32 p-4"
-          onClick={() => handleOSSelect("android")}
-        >
-          <Smartphone className="h-12 w-12 mb-2" />
-          <span>Android</span>
-        </Button>
-
-        <Button
-          variant="outline"
-          className="flex flex-col items-center justify-center h-32 p-4"
-          onClick={() => handleOSSelect("ios")}
-        >
-          <Apple className="h-12 w-12 mb-2" />
-          <span>iOS</span>
-        </Button>
+        {platforms.map((platform, index) => (
+          <Button
+            key={index}
+            variant="outline"
+            className="flex flex-col items-center justify-center h-32 p-4"
+            onClick={() => handleOSSelect(platform.os)}
+          >
+            {platform.icon}
+            <span>{platform.text}</span>
+          </Button>
+        ))}
       </div>
 
       <Drawer open={open} onOpenChange={setOpen}>

@@ -20,7 +20,10 @@ export default function Home() {
 
       <main className="mx-auto px-4 w-full grow flex justify-center items-center mt-12 md:mt-0 relative">
         <div className="max-w-3xl mx-auto text-center space-y-8">
-          <TextHoverEffect text="ReChrome" />
+          <div className="hidden md:block">
+            <TextHoverEffect text="ReChrome" />
+          </div>
+          <h1 className="text-5xl block md:hidden font-bold">ReChrome</h1>
           <p className="text-xs text-muted-foreground px-4 md:text-lg xl:text-xl xl:-mt-20">
             Stop digging through the internet to find specific Chrome versions. We've gathered all versions in one
             convenient location.
@@ -32,8 +35,8 @@ export default function Home() {
         </div>
       </main>
 
-      <footer className="border-t h-20 mt-4 relative">
-        <div className="container mx-auto px-4 h-full flex justify-between items-center">
+      <footer className="border-t h-20 mt-4 relative pt-8 pb-20 md:pb-8">
+        <div className="container mx-auto px-4 h-full flex justify-between md:items-center flex-col md:flex-row gap-y-2">
           <p className="text-xs text-muted-foreground">ReChrome is not affiliated with Google. All download links are public in the official archive.</p>
           <div className="flex items-center gap-x-2">
             <Link href="https://x.com/itzcodex24" target="_blank" rel="noopener noreferrer">
