@@ -151,7 +151,7 @@ export default function OperatingSystemSelector() {
           <Button
             key={index}
             variant="outline"
-            className="flex flex-col items-center justify-center h-32 p-4"
+            className="flex flex-col items-center justify-center h-32 p-4 backdrop-blur-xl"
             onClick={() => handleOSSelect(platform.os)}
           >
             {platform.icon}
