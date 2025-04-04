@@ -13,3 +13,16 @@ Massive **Thank You** to `@barbietunnie` for making this list public on [GitHub 
 ### Contributions
 
 Whilst this is an extremely small project, for those of you that may wish to contribute to the application, such to make it perform better or look nicer, please submit a PR!
+
+#### Clone
+
+To clone this repository, simply run the following commands in your terminal:
+```
+1. git clone https://github.com/itzcodex24/rechrome`
+2. cd rechrome`
+3. npm/yarn install`
+4. npm/yarn run dev`
+```
+
+Happy Hacking ;)
+

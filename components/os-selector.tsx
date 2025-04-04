@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+
 import {
   Drawer,
   DrawerClose,
@@ -12,6 +13,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer"
+
 import {
   ComputerIcon as Windows,
   Apple,
@@ -22,10 +24,12 @@ import {
   Search,
   Loader2,
 } from "lucide-react"
-import { Version } from "@/types/types"
-import type { Platforms } from "@/app/api/versions/route"
 
 type OperatingSystem = typeof Platforms[number]
+
+type Version = {
+  [key: string]: {download_url: string}
+}
 
 interface ChromeVersion {
   version: string
@@ -37,6 +41,9 @@ interface Platform {
   icon: React.ReactNode
   os: OperatingSystem
 }
+
+export const Platforms = ['android', 'mac', 'linux', 'linux64', 'win', 'win64'] as const
+
 
 const platforms: Platform[] = [
   {
@@ -225,7 +232,7 @@ export default function OperatingSystemSelector() {
               </div>
             ) : (
               <div className="text-center py-12">
-                <p className="text-muted-foreground">No versions found matching "{searchQuery}"</p>
+                <p className="text-muted-foreground">No versions found matching &quot;{searchQuery}&quot;</p>
               </div>
             )}
           </div>

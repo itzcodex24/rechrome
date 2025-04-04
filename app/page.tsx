@@ -25,7 +25,7 @@ export default function Home() {
           </div>
           <h1 className="text-5xl block md:hidden font-bold">ReChrome</h1>
           <p className="text-xs text-muted-foreground px-4 md:text-lg xl:text-xl xl:-mt-20">
-            Stop digging through the internet to find specific Chrome versions. We've gathered all versions in one
+            Stop digging through the internet to find specific Chrome versions. We&apos;ve gathered all versions in one
             convenient location.
           </p>
 

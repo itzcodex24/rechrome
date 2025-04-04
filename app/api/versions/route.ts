@@ -1,8 +1,8 @@
 import { NextRequest } from 'next/server'
 import { tryCatch } from '@/lib/try-catch'
+import { Platforms } from '@/components/os-selector'
 
 const ENDPOINT = 'https://raw.githubusercontent.com/Bugazelle/chromium-all-old-stable-versions/master/chromium.stable.json'
-export const Platforms = ['android', 'mac', 'linux', 'linux64', 'win', 'win64'] as const
 
 export async function GET(request: NextRequest) {
   const os = request.nextUrl.searchParams.get('os') as typeof Platforms[number]
