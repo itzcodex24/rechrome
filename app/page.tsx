@@ -45,7 +45,7 @@ export default function Home() {
                 <span className="sr-only">Twitter</span>
               </Button>
             </Link>
-            <Link href="https://github.com/itzcodex24" target="_blank" rel="noopener noreferrer">
+            <Link href="https://github.com/itzcodex24/rechrome" target="_blank" rel="noopener noreferrer">
               <Button variant="ghost" size="icon" className="h-8 w-8">
                 <FaGithub className="h-4 w-4" />
                 <span className="sr-only">GitHub</span>
