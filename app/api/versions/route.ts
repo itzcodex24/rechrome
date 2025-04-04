@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import { tryCatch } from '@/lib/try-catch'
-import { Platforms } from '@/components/os-selector'
+import { Platforms } from '@/lib/utils'
 
 const ENDPOINT = 'https://raw.githubusercontent.com/Bugazelle/chromium-all-old-stable-versions/master/chromium.stable.json'
 

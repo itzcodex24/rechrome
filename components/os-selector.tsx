@@ -24,6 +24,7 @@ import {
   Search,
   Loader2,
 } from "lucide-react"
+import { Platforms } from "@/lib/utils"
 
 type OperatingSystem = typeof Platforms[number]
 
@@ -41,9 +42,6 @@ interface Platform {
   icon: React.ReactNode
   os: OperatingSystem
 }
-
-export const Platforms = ['android', 'mac', 'linux', 'linux64', 'win', 'win64'] as const
-
 
 const platforms: Platform[] = [
   {
