@@ -45,12 +45,15 @@ export default function Home() {
                 <span className="sr-only">Twitter</span>
               </Button>
             </Link>
-            <Link href="https://github.com/itzcodex24/rechrome" target="_blank" rel="noopener noreferrer">
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <FaGithub className="h-4 w-4" />
-                <span className="sr-only">GitHub</span>
-              </Button>
-            </Link>
+            <div className="flex items-center gap-x-2">
+              <Link href="https://github.com/itzcodex24/rechrome" target="_blank" rel="noopener noreferrer">
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <FaGithub className="h-4 w-4" />
+                  <span className="sr-only">GitHub</span>
+                </Button>
+              </Link>
+              <h1 className="text-white/80 font-light">Please leave a ⭐</h1>
+            </div>
           </div>
         </div>
       </footer>
