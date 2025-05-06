@@ -1,43 +1,127 @@
-import { NextRequest } from 'next/server'
 import { tryCatch } from '@/lib/try-catch'
-import { Platforms } from '@/lib/utils'
+import { PrimaryPlatforms, type TPrimaryPlatforms, type TSecondaryPlatforms } from '@/lib/utils'
+import { NextRequest } from 'next/server'
 
-interface Versions {
-  [key: string]: {
+type PrimaryEndpoints = Record<TPrimaryPlatforms, {
+  [version: string]: {
     download_url: string
+  }
+}>
+
+type SecondaryEndpoints = {
+  versions: {
+    version: string
+    downloads: {
+      chrome: {
+        platform: TSecondaryPlatforms
+        url: string
+      }[]
+    }
+  }[]
+}
+
+export type Result = { version: string, url: string }[]
+
+const ENDPOINTS = {
+  primary: 'https://raw.githubusercontent.com/Bugazelle/chromium-all-old-stable-versions/master/chromium.stable.json',
+  secondary: 'https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json'
+} as const
+
+async function getPrimaryResponse(os: TPrimaryPlatforms): Promise<Result> {
+  try {
+    const response = await fetch(ENDPOINTS.primary, { method: "GET" })
+    const json = await response.json() as PrimaryEndpoints
+
+    const versions = json[os]
+    if (!versions) throw Error("No versions found.")
+
+    return Object.entries(versions)
+      .map(([version, { download_url }]) => ({ version, url: download_url }))
+  } catch (e) {
+    throw Error("Unable to fetch primary data.")
   }
 }
 
-const ENDPOINT = 'https://raw.githubusercontent.com/Bugazelle/chromium-all-old-stable-versions/master/chromium.stable.json'
+function mapSecondaryOperatingSystem(inputOs: TPrimaryPlatforms): TSecondaryPlatforms | null {
+  switch (inputOs) {
+    case 'mac':
+      return 'mac-arm64'
+    case 'win64':
+      return 'win64'
+    case 'win':
+      return 'win32'
+    case 'linux64':
+    case 'linux':
+      return 'linux64'
+    case 'android':
+      return null
+
+    default: {
+      const exhaustive: never = inputOs
+      console.error('Received exhaustive value ' + exhaustive)
+      return null
+    }
+  }
+}
+
+async function getSecondaryResponse(os: TPrimaryPlatforms, currentResults: Result): Promise<Result> {
+  try {
+    const response = await fetch(ENDPOINTS.secondary, { method: "GET" })
+    const json = await response.json() as SecondaryEndpoints
+
+    const secondaryOs = mapSecondaryOperatingSystem(os)
+    if (!secondaryOs) throw Error("Input OS Unsupported")
+
+    const filteredVersions = json.versions.filter(v => 
+      !currentResults.some(r => r.version === v.version)
+    )
+
+    const secondaryDownloads = filteredVersions.flatMap(v => {
+      const chromeDownloads = v.downloads.chrome
+      const matchingDownloads = chromeDownloads.filter(d => d.platform === secondaryOs)
+      return matchingDownloads.map(d => ({
+        version: v.version,
+        url: d.url
+      }))
+    })
+
+    console.log(JSON.stringify(secondaryDownloads))
+
+    return secondaryDownloads
+  } catch (e) {
+    throw Error("Unable to fetch secondary data.")
+  }
+}
+
+async function getVersions(os: TPrimaryPlatforms): Promise<Result> {
+  const result: Result = []
+
+  const { data: primary, error: primaryError } = await tryCatch(getPrimaryResponse(os))
+  if (primaryError) {
+    console.error(primaryError)
+  } else {
+    result.push(...primary)
+  }
+
+  const { data: secondary, error: secondaryError } = await tryCatch(getSecondaryResponse(os, result))
+  if (secondaryError) {
+    console.error(secondaryError)
+  } else {
+    result.push(...secondary)
+  }
+
+  return result
+}
 
 export async function GET(request: NextRequest) {
-  const os = request.nextUrl.searchParams.get('os') as typeof Platforms[number]
-
+  const os = request.nextUrl.searchParams.get('os') as typeof PrimaryPlatforms[number]
   if (!os) return new Response('Invalid request.', { status: 400 })
-  if (!Platforms.includes(os)) return new Response('Unsupported Operating System.', { status: 400 })
+  if (!PrimaryPlatforms.includes(os)) return new Response('Unsupported Operating System.', { status: 400 })
 
-  const { data: response, error } = await tryCatch(fetch(ENDPOINT, { method: 'GET' }))
-  if (error) {
-    console.log(error)
-    return new Response('An error occured.', { status: 500 })
+  try {
+    const versions = await getVersions(os)
+    return Response.json(versions, { status: 200 })
+  } catch (e) {
+    return new Response('Unable to fetch versions.', { status: 500 })
   }
-
-  if (!response.ok) return new Response('An error occured.', { status: 500 })
-
-  const { data, error: jsonError } = await tryCatch(response.json())
-
-  if (jsonError) {
-    console.log(error)
-    return new Response('An error occured.', { status: 500 })
-  }
-
-  const versions = data[os] as Versions
-  if (!versions) return new Response('Unsupported Operating System.', { status: 400 })
-
-  const validVersions = Object.fromEntries(
-    Object.entries(versions)
-      .filter(([, { download_url }]) => !download_url.toLowerCase().includes('error:'))
-  )
- 
-  return Response.json(validVersions, {status: 200})
 }
