@@ -85,12 +85,26 @@ async function getSecondaryResponse(os: TPrimaryPlatforms, currentResults: Resul
       }))
     })
 
-    console.log(JSON.stringify(secondaryDownloads))
-
     return secondaryDownloads
   } catch (e) {
     throw Error("Unable to fetch secondary data.")
   }
+}
+
+function compareVersions(a: string, b: string): number {
+  const aParts = a.split('.').map(Number)
+  const bParts = b.split('.').map(Number)
+  
+  for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+    const aPart = aParts[i] || 0
+    const bPart = bParts[i] || 0
+    
+    if (aPart !== bPart) {
+      return bPart - aPart
+    }
+  }
+  
+  return 0
 }
 
 async function getVersions(os: TPrimaryPlatforms): Promise<Result> {
@@ -110,7 +124,17 @@ async function getVersions(os: TPrimaryPlatforms): Promise<Result> {
     result.push(...secondary)
   }
 
-  return result
+  const uniqueVersions = new Map<string, { version: string, url: string }>()
+  for (const item of result) {
+    if (!uniqueVersions.has(item.version)) {
+      uniqueVersions.set(item.version, item)
+    }
+  }
+
+  const deduplicated = Array.from(uniqueVersions.values())
+  deduplicated.sort((a, b) => compareVersions(a.version, b.version))
+
+  return deduplicated
 }
 
 export async function GET(request: NextRequest) {
