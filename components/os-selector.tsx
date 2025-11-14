@@ -24,23 +24,14 @@ import {
   Search,
   Loader2,
 } from "lucide-react"
-import { Platforms } from "@/lib/utils"
 
-type OperatingSystem = typeof Platforms[number]
-
-type Version = {
-  [key: string]: {download_url: string}
-}
-
-interface ChromeVersion {
-  version: string
-  downloadUrl: string
-}
+import type { Result } from "@/app/api/versions/route"
+import type { TPrimaryPlatforms } from "@/lib/utils"
 
 interface Platform {
   text: string
   icon: React.ReactNode
-  os: OperatingSystem
+  os: TPrimaryPlatforms
 }
 
 const platforms: Platform[] = [
@@ -78,9 +69,9 @@ const platforms: Platform[] = [
 
 export default function OperatingSystemSelector() {
   const [open, setOpen] = useState(false)
-  const [selectedOS, setSelectedOS] = useState<OperatingSystem>("win64")
-  const [chromeVersions, setChromeVersions] = useState<ChromeVersion[]>([])
-  const [filteredVersions, setFilteredVersions] = useState<ChromeVersion[]>([])
+  const [selectedOS, setSelectedOS] = useState<TPrimaryPlatforms>("win64")
+  const [chromeVersions, setChromeVersions] = useState<Result>([])
+  const [filteredVersions, setFilteredVersions] = useState<Result>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -102,14 +93,9 @@ export default function OperatingSystemSelector() {
           }
           return response.json()
         })
-        .then((data: Version) => {
-          const versions: ChromeVersion[] = Object.entries(data).map(([version, { download_url }]) => ({
-            version,
-            downloadUrl: download_url
-          }))
-
-          setChromeVersions(versions)
-          setFilteredVersions(versions)
+        .then((data: Result) => {
+          setChromeVersions(data)
+          setFilteredVersions(data)
         })
         .catch(err => {
           console.error("Error fetching Chrome versions:", err)
@@ -133,7 +119,7 @@ export default function OperatingSystemSelector() {
     }
   }, [searchQuery, chromeVersions])
 
-  const handleOSSelect = (os: OperatingSystem) => {
+  const handleOSSelect = (os: TPrimaryPlatforms) => {
     setSelectedOS(os)
     setSearchQuery("")
     setOpen(true)
@@ -216,7 +202,7 @@ export default function OperatingSystemSelector() {
                           <td className="p-3">{version.version}</td>
                           <td className="p-3 text-right">
                             <Button size="sm" variant="outline" asChild>
-                              <a href={version.downloadUrl} target="_blank" rel="noopener noreferrer">
+                              <a href={version.url} target="_blank" rel="noopener noreferrer">
                                 <Download className="h-4 w-4 mr-2" />
                                 Download
                               </a>
