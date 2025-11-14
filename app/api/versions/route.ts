@@ -37,7 +37,7 @@ async function getPrimaryResponse(os: TPrimaryPlatforms): Promise<Result> {
 
     return Object.entries(versions)
       .map(([version, { download_url }]) => ({ version, url: download_url }))
-  } catch (_) {
+  } catch {
     throw Error("Unable to fetch primary data.")
   }
 }
@@ -86,7 +86,7 @@ async function getSecondaryResponse(os: TPrimaryPlatforms, currentResults: Resul
     })
 
     return secondaryDownloads
-  } catch (_) {
+  } catch {
     throw Error("Unable to fetch secondary data.")
   }
 }
@@ -145,7 +145,7 @@ export async function GET(request: NextRequest) {
   try {
     const versions = await getVersions(os)
     return Response.json(versions, { status: 200 })
-  } catch (_) {
+  } catch {
     return new Response('Unable to fetch versions.', { status: 500 })
   }
 }
