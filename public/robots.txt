@@ -1,0 +1,43 @@
+# ReChrome - Chrome Version Archive
+# https://rechrome.dev
+
+User-agent: *
+Allow: /
+Disallow:
+
+# Sitemap
+Sitemap: https://rechrome.dev/sitemap.xml
+
+# Crawl delay (optional - set reasonable delays)
+Crawl-delay: 1
+
+# Specific bots
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Slurp
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+User-agent: Yandexbot
+Allow: /
+
+# Block bad bots
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
