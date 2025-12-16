@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   title: "ReChrome - Download Old Chrome Versions | Chrome Version Archive",
   description: "Download old Chrome versions for Windows, macOS, and Linux. Access the complete Chrome version history and archive with easy one-click downloads.",
   keywords: ['chrome versions', 'download old chrome', 'chrome version history', 'old chrome versions', 'chrome archive', 'legacy chrome', 'chrome downloads', 'rechrome'],
-  metadataBase: new URL(process.env.NEXT_PUBLIC_URL || "https://rechrome.dev"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_URL || "https://rechrome.vercel.app/"),
   openGraph: {
     title: "ReChrome - Download Old Chrome Versions",
     description: "Find and download any Chrome version you need. Complete archive with one-click downloads for all operating systems.",
