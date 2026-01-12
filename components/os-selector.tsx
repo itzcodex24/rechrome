@@ -4,10 +4,6 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
-const GITHUB_PROFILE_URL = "https://github.com/itzcodex24"
-const GITHUB_REPO_URL = `${GITHUB_PROFILE_URL}/rechrome`
-const HAS_SHOWN_STAR_PROMPT_KEY = "rechrome:shownStarPrompt"
-
 import {
   Drawer,
   DrawerClose,
@@ -37,6 +33,10 @@ interface Platform {
   icon: React.ReactNode
   os: TPrimaryPlatforms
 }
+
+const GITHUB_PROFILE_URL = "https://github.com/itzcodex24"
+const GITHUB_REPO_URL = `${GITHUB_PROFILE_URL}/rechrome`
+const HAS_SHOWN_STAR_PROMPT_KEY = "rechrome:shownStarPrompt"
 
 const platforms: Platform[] = [
   {
