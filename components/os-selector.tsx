@@ -4,6 +4,10 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
+const GITHUB_PROFILE_URL = "https://github.com/itzcodex24"
+const GITHUB_REPO_URL = `${GITHUB_PROFILE_URL}/rechrome`
+const HAS_SHOWN_STAR_PROMPT_KEY = "rechrome:shownStarPrompt"
+
 import {
   Drawer,
   DrawerClose,
@@ -69,6 +73,7 @@ const platforms: Platform[] = [
 
 export default function OperatingSystemSelector() {
   const [open, setOpen] = useState(false)
+  const [showStarPrompt, setShowStarPrompt] = useState(false)
   const [selectedOS, setSelectedOS] = useState<TPrimaryPlatforms>("win64")
   const [chromeVersions, setChromeVersions] = useState<Result>([])
   const [filteredVersions, setFilteredVersions] = useState<Result>([])
@@ -125,8 +130,64 @@ export default function OperatingSystemSelector() {
     setOpen(true)
   }
 
+  const maybeShowStarPrompt = () => {
+    try {
+      const hasShown = localStorage.getItem(HAS_SHOWN_STAR_PROMPT_KEY) === "1"
+      if (hasShown) return
+
+      localStorage.setItem(HAS_SHOWN_STAR_PROMPT_KEY, "1")
+      setShowStarPrompt(true)
+    } catch {
+      setShowStarPrompt(true)
+    }
+  }
+
   return (
     <div className="space-y-6">
+      <Drawer open={showStarPrompt} onOpenChange={setShowStarPrompt}>
+        <DrawerContent className="max-w-md mx-auto">
+          <DrawerHeader className="border-b">
+            <DrawerTitle>Enjoying ReChrome?</DrawerTitle>
+            <DrawerDescription>
+              If this helped you, starring the repo makes a big difference.
+            </DrawerDescription>
+          </DrawerHeader>
+
+          <div className="px-4 py-4 space-y-3 text-sm">
+            <p>
+              <a
+                href={GITHUB_REPO_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+              >
+                Star the GitHub repository
+              </a>
+            </p>
+            <p>
+              <a
+                href={GITHUB_PROFILE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+              >
+                View the creator profile
+              </a>
+            </p>
+          </div>
+
+          <DrawerFooter className="border-t">
+            <Button asChild>
+              <a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer">
+                Star on GitHub
+              </a>
+            </Button>
+            <Button variant="outline" onClick={() => setShowStarPrompt(false)}>
+              Not now
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
       <h3 className="text-2xl font-semibold">Select Your Operating System</h3>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -202,7 +263,12 @@ export default function OperatingSystemSelector() {
                           <td className="p-3">{version.version}</td>
                           <td className="p-3 text-right">
                             <Button size="sm" variant="outline" asChild>
-                              <a href={version.url} target="_blank" rel="noopener noreferrer">
+                              <a
+                                href={version.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={maybeShowStarPrompt}
+                              >
                                 <Download className="h-4 w-4 mr-2" />
                                 Download
                               </a>
