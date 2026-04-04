@@ -4,7 +4,7 @@ export function generateSchemaMarkup() {
     "@type": "WebApplication",
     "name": "ReChrome",
     "description": "Download old Chrome versions for Windows, macOS, and Linux. Access the complete Chrome version history and archive.",
-    "url": "https://rechrome.vercel.app/",
+    "url": "https://rechrome.dev/",
     "applicationCategory": "UtilityApplication",
     "offers": {
       "@type": "Offer",
@@ -23,7 +23,7 @@ export function generateSchemaMarkup() {
     "sourceOrganization": {
       "@type": "Organization",
       "name": "ReChrome",
-      "url": "https://rechrome.vercel.app/"
+      "url": "https://rechrome.dev/"
     },
     "operatingSystem": ["Windows", "macOS", "Linux"],
     "inLanguage": "en-US",
