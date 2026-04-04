@@ -38,6 +38,25 @@ const GITHUB_PROFILE_URL = "https://github.com/itzcodex24"
 const GITHUB_REPO_URL = `${GITHUB_PROFILE_URL}/rechrome`
 const HAS_SHOWN_STAR_PROMPT_KEY = "rechrome:shownStarPrompt"
 
+function getPlatformDisplayName(os: TPrimaryPlatforms): string {
+  switch (os) {
+    case 'mac-arm64':
+      return 'macOS (Apple Silicon)'
+    case 'mac-x64':
+      return 'macOS (Intel)'
+    case 'win':
+      return 'Windows'
+    case 'win64':
+      return 'Windows 64'
+    case 'linux64':
+      return 'Linux 64'
+    case 'android':
+      return 'Android'
+    default:
+      return os
+  }
+}
+
 const platforms: Platform[] = [
   {
     text: "Android",
@@ -45,8 +64,13 @@ const platforms: Platform[] = [
     icon: <Smartphone className="h-12 w-12 mb-2" />
   },
   {
-    text: "macOS",
-    os: 'mac',
+    text: "macOS (Apple Silicon)",
+    os: 'mac-arm64',
+    icon: <Apple className="h-12 w-12 mb-2" />
+  },
+  {
+    text: "macOS (Intel)",
+    os: 'mac-x64',
     icon: <Apple className="h-12 w-12 mb-2" />
   },
   {
@@ -58,11 +82,6 @@ const platforms: Platform[] = [
     text: "Windows 64",
     os: 'win64',
     icon: <Windows className="h-12 w-12 mb-2" />
-  },
-  {
-    text: "Linux",
-    os: 'linux',
-    icon: <Linux className="h-12 w-12 mb-2" />
   },
   {
     text: "Linux 64",
@@ -209,7 +228,7 @@ export default function OperatingSystemSelector() {
         <DrawerContent className="max-h-[85vh]">
           <DrawerHeader className="border-b">
             <div className="flex items-center justify-between">
-              <DrawerTitle>Chrome Downloads for {selectedOS.charAt(0).toUpperCase() + selectedOS.slice(1).replace("64", "")}</DrawerTitle>
+              <DrawerTitle>Chrome Downloads for {getPlatformDisplayName(selectedOS)}</DrawerTitle>
               <DrawerClose asChild>
                 <Button variant="ghost" size="icon">
                   <X className="h-4 w-4" />

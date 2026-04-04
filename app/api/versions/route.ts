@@ -32,7 +32,8 @@ async function getPrimaryResponse(os: TPrimaryPlatforms): Promise<Result> {
     const response = await fetch(ENDPOINTS.primary, { method: "GET" })
     const json = await response.json() as PrimaryEndpoints
 
-    const versions = json[os]
+    const sourceKey = mapPrimarySourceKey(os) as TPrimaryPlatforms
+    const versions = json[sourceKey]
     if (!versions) throw Error("No versions found.")
 
     return Object.entries(versions)
@@ -42,16 +43,27 @@ async function getPrimaryResponse(os: TPrimaryPlatforms): Promise<Result> {
   }
 }
 
+function mapPrimarySourceKey(inputOs: TPrimaryPlatforms): string {
+  switch (inputOs) {
+    case 'mac-arm64':
+    case 'mac-x64':
+      return 'mac'
+    default:
+      return inputOs
+  }
+}
+
 function mapSecondaryOperatingSystem(inputOs: TPrimaryPlatforms): TSecondaryPlatforms | null {
   switch (inputOs) {
-    case 'mac':
+    case 'mac-arm64':
       return 'mac-arm64'
+    case 'mac-x64':
+      return 'mac-x64'
     case 'win64':
       return 'win64'
     case 'win':
       return 'win32'
     case 'linux64':
-    case 'linux':
       return 'linux64'
     case 'android':
       return null
