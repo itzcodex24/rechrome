@@ -1,12 +1,12 @@
 # ReChrome - Chrome Version Archive
-# https://rechrome.vercel.app/
+# https://rechrome.dev/
 
 User-agent: *
 Allow: /
 Disallow:
 
 # Sitemap
-Sitemap: https://rechrome.vercel.app/sitemap.xml
+Sitemap: https://rechrome.dev/sitemap.xml
 
 # Crawl delay (optional - set reasonable delays)
 Crawl-delay: 1

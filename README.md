@@ -2,7 +2,7 @@
 
 ReChrome is an open-source project which provides a visual representation of all past, archived, chrome versions, ready to be downloaded for a variation of different operating system ranging from Android & Linux to MacOS & Windows.
 
-The current production application can be viewed [here](https://rechrome.vercel.app) (Currently hosted on Vercel)
+The current production application can be viewed [here](https://rechrome.dev) (Currently hosted on Vercel)
 
 ## Credits
 
