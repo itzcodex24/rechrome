@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
-import { Montserrat } from "next/font/google";
+import { Space_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Analytics } from "@vercel/analytics/react"
 import { generateSchemaMarkup, generateFAQSchema } from "./schema";
 
-const montserrat = Montserrat({
-  variable: '--font-montserrat',
-  subsets: ['latin']
+const spaceMono = Space_Mono({
+  variable: '--font-space-mono',
+  subsets: ['latin'],
+  weight: ['400', '700'],
 })
 
 export const metadata: Metadata = {
@@ -59,7 +60,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
         <script
           type="application/ld+json"
@@ -75,7 +76,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${montserrat.className} antialiased`}
+        className={`${spaceMono.variable} ${spaceMono.className} antialiased`}
       >
         <ThemeProvider attribute='class' defaultTheme="system" enableSystem disableTransitionOnChange>
           {children}
