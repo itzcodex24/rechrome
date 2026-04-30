@@ -1,318 +1,230 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer"
-
-import {
-  ComputerIcon as Windows,
-  Apple,
-  LaptopIcon as Linux,
-  Smartphone,
-  Download,
-  X,
-  Search,
-  Loader2,
-} from "lucide-react"
+import { useState, useEffect, useRef, useCallback } from "react"
+import { AnimatePresence, motion } from "motion/react"
 
 import type { Result } from "@/app/api/versions/route"
 import type { TPrimaryPlatforms } from "@/lib/utils"
 
 interface Platform {
-  text: string
-  icon: React.ReactNode
-  os: TPrimaryPlatforms
+  id: TPrimaryPlatforms
+  label: string
+  arch: string
 }
 
-const GITHUB_PROFILE_URL = "https://github.com/itzcodex24"
-const GITHUB_REPO_URL = `${GITHUB_PROFILE_URL}/rechrome`
-const HAS_SHOWN_STAR_PROMPT_KEY = "rechrome:shownStarPrompt"
-
-function getPlatformDisplayName(os: TPrimaryPlatforms): string {
-  switch (os) {
-    case 'mac-arm64':
-      return 'macOS (Apple Silicon)'
-    case 'mac-x64':
-      return 'macOS (Intel)'
-    case 'win':
-      return 'Windows'
-    case 'win64':
-      return 'Windows 64'
-    case 'linux64':
-      return 'Linux 64'
-    case 'android':
-      return 'Android'
-    default:
-      return os
-  }
-}
-
-const platforms: Platform[] = [
-  {
-    text: "Android",
-    os: 'android',
-    icon: <Smartphone className="h-12 w-12 mb-2" />
-  },
-  {
-    text: "macOS (Apple Silicon)",
-    os: 'mac-arm64',
-    icon: <Apple className="h-12 w-12 mb-2" />
-  },
-  {
-    text: "macOS (Intel)",
-    os: 'mac-x64',
-    icon: <Apple className="h-12 w-12 mb-2" />
-  },
-  {
-    text: "Windows",
-    os: 'win',
-    icon: <Windows className="h-12 w-12 mb-2" />
-  },
-  {
-    text: "Windows 64",
-    os: 'win64',
-    icon: <Windows className="h-12 w-12 mb-2" />
-  },
-  {
-    text: "Linux 64",
-    os: 'linux64',
-    icon: <Linux className="h-12 w-12 mb-2" />
-  },
+const PLATFORMS: Platform[] = [
+  { id: "win64",     label: "Windows 64",   arch: "64-bit" },
+  { id: "win",       label: "Windows 32",   arch: "32-bit" },
+  { id: "mac-arm64", label: "macOS ARM",    arch: "Apple Silicon" },
+  { id: "mac-x64",   label: "macOS Intel",  arch: "x86-64" },
+  { id: "linux64",   label: "Linux 64",     arch: "64-bit" },
+  { id: "android",   label: "Android",      arch: "APK" },
 ]
 
-export default function OperatingSystemSelector() {
-  const [open, setOpen] = useState(false)
-  const [showStarPrompt, setShowStarPrompt] = useState(false)
-  const [selectedOS, setSelectedOS] = useState<TPrimaryPlatforms>("win64")
-  const [chromeVersions, setChromeVersions] = useState<Result>([])
-  const [filteredVersions, setFilteredVersions] = useState<Result>([])
-  const [searchQuery, setSearchQuery] = useState("")
+function detectOS(): TPrimaryPlatforms {
+  if (typeof window === "undefined") return "win64"
+  const ua = navigator.userAgent.toLowerCase()
+  const platform = (navigator.platform || "").toLowerCase()
+  if (/android/i.test(ua)) return "android"
+  if (/mac/i.test(platform) || /macintosh/i.test(ua)) return "mac-arm64"
+  if (/linux/i.test(platform)) return "linux64"
+  return "win64"
+}
+
+function OsCard({ platform, isDetected, onClick }: { platform: Platform; isDetected: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`relative text-left p-4 flex flex-col gap-1 cursor-pointer transition-colors ${
+        isDetected
+          ? "bg-terminal-green hover:opacity-90"
+          : "bg-card hover:bg-accent"
+      }`}
+    >
+      <span className={`text-[12px] font-bold ${isDetected ? "text-[#0a0a0a]" : "text-foreground"}`}>
+        {platform.label}
+      </span>
+      <span className={`text-[10px] ${isDetected ? "text-black/50" : "text-dim"}`}>
+        {platform.arch}
+      </span>
+      {isDetected && (
+        <span className="absolute top-2 right-2 text-[8px] tracking-[1px] text-black/60 bg-black/15 px-1.5 py-0.5">
+          AUTO
+        </span>
+      )}
+    </button>
+  )
+}
+
+function VersionRow({
+  version,
+  copied,
+  onCopy,
+}: {
+  version: { version: string; url: string }
+  copied: string | null
+  onCopy: (url: string) => void
+}) {
+  return (
+    <div className="group flex items-center justify-between px-4 py-2 border-b border-border last:border-b-0 hover:bg-accent transition-colors">
+      <span className="text-[12px] text-muted-foreground font-mono">
+        {version.version}
+      </span>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => onCopy(version.url)}
+          title="Copy link"
+          className="text-[10px] text-dim px-1.5 py-1 opacity-0 group-hover:opacity-100 transition-[opacity,color] cursor-pointer bg-transparent border-none font-mono hover:text-terminal-green"
+        >
+          {copied === version.url ? "✓ copied" : "⎘ copy"}
+        </button>
+        <a
+          href={version.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 border border-[var(--border-mid)] text-dim text-[10px] no-underline transition-colors hover:border-terminal-green hover:text-terminal-green hover:bg-[var(--terminal-green-dim)]"
+        >
+          ↓ download
+        </a>
+      </div>
+    </div>
+  )
+}
+
+function VersionPanel({ platform, onBack }: { platform: Platform; onBack: () => void }) {
+  const [search, setSearch] = useState("")
+  const [versions, setVersions] = useState<Result>([])
+  const [filtered, setFiltered] = useState<Result>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-
-  useEffect(() => {
-    if (open) {
-      setIsLoading(true)
-      setChromeVersions([])
-      setFilteredVersions([])
-      setError(null)
-
-      fetch(`/api/versions?os=${selectedOS}`, {
-        next: { revalidate: 86400 * 3 }
-      })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`Error fetching data: ${response.status}`)
-          }
-          return response.json()
-        })
-        .then((data: Result) => {
-          setChromeVersions(data)
-          setFilteredVersions(data)
-        })
-        .catch(err => {
-          console.error("Error fetching Chrome versions:", err)
-          setError("Failed to load Chrome versions. Please try again later.")
-        })
-        .finally(() => {
-          setIsLoading(false)
-        })
-    }
-  }, [open, selectedOS])
-
+  const [copied, setCopied] = useState<string | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setFilteredVersions(chromeVersions)
-    } else {
-      const filtered = chromeVersions.filter((version) =>
-        version.version.toLowerCase().includes(searchQuery.toLowerCase()),
-      )
-      setFilteredVersions(filtered)
-    }
-  }, [searchQuery, chromeVersions])
+    setIsLoading(true)
+    setError(null)
+    fetch(`/api/versions?os=${platform.id}`)
+      .then(r => { if (!r.ok) throw new Error(); return r.json() })
+      .then((data: Result) => { setVersions(data); setFiltered(data) })
+      .catch(() => setError("Failed to load versions."))
+      .finally(() => setIsLoading(false))
+    setTimeout(() => inputRef.current?.focus(), 50)
+  }, [platform.id])
 
-  const handleOSSelect = (os: TPrimaryPlatforms) => {
-    setSelectedOS(os)
-    setSearchQuery("")
-    setOpen(true)
-  }
+  useEffect(() => {
+    setFiltered(search.trim() ? versions.filter(v => v.version.includes(search.trim())) : versions)
+  }, [search, versions])
 
-  const maybeShowStarPrompt = () => {
-    try {
-      const hasShown = localStorage.getItem(HAS_SHOWN_STAR_PROMPT_KEY) === "1"
-      if (hasShown) return
-
-      localStorage.setItem(HAS_SHOWN_STAR_PROMPT_KEY, "1")
-      setShowStarPrompt(true)
-    } catch {
-      setShowStarPrompt(true)
-    }
-  }
+  const handleCopy = useCallback(async (url: string) => {
+    try { await navigator.clipboard.writeText(url) } catch { /* noop */ }
+    setCopied(url)
+    setTimeout(() => setCopied(null), 2000)
+  }, [])
 
   return (
-    <div className="space-y-6">
-      <Drawer open={showStarPrompt} onOpenChange={setShowStarPrompt}>
-        <DrawerContent className="max-w-md mx-auto">
-          <DrawerHeader className="border-b">
-            <DrawerTitle>Enjoying ReChrome?</DrawerTitle>
-            <DrawerDescription>
-              If this helped you, starring the repo makes a big difference.
-            </DrawerDescription>
-          </DrawerHeader>
+    <div className="animate-fade-up border border-border bg-card">
+      {/* Header */}
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
+        <button
+          onClick={onBack}
+          className="bg-transparent border border-[var(--border-mid)] text-muted-foreground font-mono text-[10px] px-2 py-1 cursor-pointer transition-colors hover:border-terminal-green hover:text-terminal-green"
+        >
+          ← back
+        </button>
+        <span className="text-[12px] font-bold flex-1">{platform.label}</span>
+        <span className="text-[10px] text-dim">{filtered.length} versions</span>
+      </div>
 
-          <div className="px-4 py-4 space-y-3 text-sm">
-            <p>
-              <a
-                href={GITHUB_REPO_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline"
-              >
-                Star the GitHub repository
-              </a>
-            </p>
-            <p>
-              <a
-                href={GITHUB_PROFILE_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline"
-              >
-                View the creator profile
-              </a>
-            </p>
+      {/* Search */}
+      <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border">
+        <span className="text-[12px] text-terminal-green shrink-0">$</span>
+        <input
+          ref={inputRef}
+          className="flex-1 bg-transparent border-none outline-none font-mono text-[12px] text-foreground placeholder:text-dim caret-terminal-green"
+          placeholder="grep version..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
+      </div>
+
+      {/* Version list */}
+      <div className="max-h-[340px] overflow-y-auto">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-10 gap-2 text-[11px] text-dim">
+            <span className="animate-spin w-3 h-3 border border-[var(--border-mid)] border-t-terminal-green rounded-full" />
+            loading...
           </div>
-
-          <DrawerFooter className="border-t">
-            <Button asChild>
-              <a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer">
-                Star on GitHub
-              </a>
-            </Button>
-            <Button variant="outline" onClick={() => setShowStarPrompt(false)}>
-              Not now
-            </Button>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
-      <h3 className="text-2xl font-semibold">Select Your Operating System</h3>
-
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-
-        {platforms.map((platform, index) => (
-          <Button
-            key={index}
-            variant="outline"
-            className="flex flex-col items-center justify-center h-32 p-4 backdrop-blur-xl"
-            onClick={() => handleOSSelect(platform.os)}
-          >
-            {platform.icon}
-            <span>{platform.text}</span>
-          </Button>
+        ) : error ? (
+          <p className="py-10 text-center text-[11px] text-dim">{error}</p>
+        ) : filtered.length === 0 ? (
+          <p className="py-10 text-center text-[11px] text-dim">no results for &quot;{search}&quot;</p>
+        ) : filtered.map(v => (
+          <VersionRow key={v.version} version={v} copied={copied} onCopy={handleCopy} />
         ))}
       </div>
 
-      <Drawer open={open} onOpenChange={setOpen}>
-        <DrawerContent className="max-h-[85vh]">
-          <DrawerHeader className="border-b">
-            <div className="flex items-center justify-between">
-              <DrawerTitle>Chrome Downloads for {getPlatformDisplayName(selectedOS)}</DrawerTitle>
-              <DrawerClose asChild>
-                <Button variant="ghost" size="icon">
-                  <X className="h-4 w-4" />
-                </Button>
-              </DrawerClose>
-            </div>
-            <DrawerDescription>
-              Select a version to download. All downloads are from official Google sources.
-            </DrawerDescription>
-          </DrawerHeader>
+      {/* Copy toast */}
+      <AnimatePresence>
+        {copied && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1.5 bg-terminal-green text-[#0a0a0a] font-mono font-bold text-[11px] px-4 py-2"
+          >
+            ✓ copied
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
 
-          <div className="px-4 py-4">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search versions..."
-                className="pl-8"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+export default function OperatingSystemSelector() {
+  const [detectedOS, setDetectedOS] = useState<TPrimaryPlatforms>("win64")
+  const [selected, setSelected] = useState<Platform | null>(null)
+
+  useEffect(() => { setDetectedOS(detectOS()) }, [])
+
+  const sorted = [...PLATFORMS].sort((a, b) => {
+    if (a.id === detectedOS) return -1
+    if (b.id === detectedOS) return 1
+    return 0
+  })
+
+  return (
+    <div>
+      <AnimatePresence mode="wait">
+        {!selected ? (
+          <motion.div
+            key="os-grid"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+            className="grid grid-cols-3 max-[800px]:grid-cols-2 max-[480px]:grid-cols-1 gap-px bg-border border border-border"
+          >
+            {sorted.map(p => (
+              <OsCard
+                key={p.id}
+                platform={p}
+                isDetected={p.id === detectedOS}
+                onClick={() => setSelected(p)}
               />
-            </div>
-          </div>
-
-          <div className="px-4 flex-1 overflow-auto">
-            {isLoading ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                <p className="mt-4 text-sm text-muted-foreground">Loading Chrome versions...</p>
-              </div>
-            ) : error ? (
-              <div className="text-center py-12">
-                <p className="text-red-500">{error}</p>
-                <Button className="mt-4" variant="outline" onClick={() => setOpen(false)}>
-                  Close
-                </Button>
-              </div>
-            ) : filteredVersions.length > 0 ? (
-              <div className="border rounded-lg overflow-hidden">
-                <div className="max-h-[50vh] overflow-y-auto">
-                  <table className="w-full">
-                    <thead className="sticky top-0 bg-background">
-                      <tr className="bg-muted">
-                        <th className="text-left p-3">Version</th>
-                        <th className="text-right p-3">Download</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredVersions.map((version, index) => (
-                        <tr key={index} className="border-t">
-                          <td className="p-3">{version.version}</td>
-                          <td className="p-3 text-right">
-                            <Button size="sm" variant="outline" asChild>
-                              <a
-                                href={version.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={maybeShowStarPrompt}
-                              >
-                                <Download className="h-4 w-4 mr-2" />
-                                Download
-                              </a>
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">No versions found matching &quot;{searchQuery}&quot;</p>
-              </div>
-            )}
-          </div>
-
-          <DrawerFooter className="border-t">
-            <Button variant="outline" onClick={() => setOpen(false)}>
-              Close
-            </Button>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
+            ))}
+          </motion.div>
+        ) : (
+          <motion.div
+            key="version-panel"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+          >
+            <VersionPanel platform={selected} onBack={() => setSelected(null)} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
