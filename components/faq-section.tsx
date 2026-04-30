@@ -21,8 +21,10 @@ const FAQS = [
   },
 ]
 
-function FAQItem({ q, a, isOpen, onToggle }: { q: string; a: string; isOpen: boolean; onToggle: () => void }) {
+function FAQItem({ q, a, isOpen, onToggle, index }: { q: string; a: string; isOpen: boolean; onToggle: () => void; index: number }) {
   const bodyRef = useRef<HTMLDivElement>(null)
+  const panelId = `faq-panel-${index}`
+  const buttonId = `faq-btn-${index}`
 
   useEffect(() => {
     const el = bodyRef.current
@@ -34,6 +36,9 @@ function FAQItem({ q, a, isOpen, onToggle }: { q: string; a: string; isOpen: boo
   return (
     <div className="border-t border-border first:border-t-0">
       <button
+        id={buttonId}
+        aria-expanded={isOpen}
+        aria-controls={panelId}
         onClick={onToggle}
         className="w-full bg-transparent border-none text-left flex items-center justify-between py-[18px] cursor-pointer font-mono text-[12px] text-foreground gap-4 transition-colors hover:text-terminal-green"
       >
@@ -47,7 +52,10 @@ function FAQItem({ q, a, isOpen, onToggle }: { q: string; a: string; isOpen: boo
         </span>
       </button>
       <div
+        id={panelId}
         ref={bodyRef}
+        role="region"
+        aria-labelledby={buttonId}
         className="overflow-hidden transition-[max-height,opacity] duration-[250ms,200ms] ease-out"
         style={{ maxHeight: 0, opacity: 0 }}
       >
@@ -67,7 +75,7 @@ export function FAQSection() {
         <span className="text-terminal-green">{"//"}</span>{" FAQ"}
       </p>
       {FAQS.map((f, i) => (
-        <FAQItem key={i} q={f.q} a={f.a} isOpen={open === i} onToggle={() => toggle(i)} />
+        <FAQItem key={i} index={i} q={f.q} a={f.a} isOpen={open === i} onToggle={() => toggle(i)} />
       ))}
     </section>
   )

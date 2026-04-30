@@ -25,8 +25,12 @@ function detectOS(): TPrimaryPlatforms {
   if (typeof window === "undefined") return "win64"
   const ua = navigator.userAgent.toLowerCase()
   const platform = (navigator.platform || "").toLowerCase()
+  const appVersion = (navigator.appVersion || "").toLowerCase()
   if (/android/i.test(ua)) return "android"
-  if (/mac/i.test(platform) || /macintosh/i.test(ua)) return "mac-arm64"
+  if (/mac/i.test(platform) || /macintosh/i.test(ua)) {
+    const hint = `${ua} ${platform} ${appVersion}`
+    return /\b(arm64|aarch64)\b/i.test(hint) ? "mac-arm64" : "mac-x64"
+  }
   if (/linux/i.test(platform)) return "linux64"
   return "win64"
 }
@@ -101,14 +105,33 @@ function VersionPanel({ platform, onBack }: { platform: Platform; onBack: () => 
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
+    const controller = new AbortController()
+    const { signal } = controller
+
     setIsLoading(true)
     setError(null)
-    fetch(`/api/versions?os=${platform.id}`)
+    fetch(`/api/versions?os=${platform.id}`, { signal })
       .then(r => { if (!r.ok) throw new Error(); return r.json() })
-      .then((data: Result) => { setVersions(data); setFiltered(data) })
-      .catch(() => setError("Failed to load versions."))
-      .finally(() => setIsLoading(false))
-    setTimeout(() => inputRef.current?.focus(), 50)
+      .then((data: Result) => {
+        if (signal.aborted) return
+        setVersions(data)
+        setFiltered(data)
+      })
+      .catch(() => {
+        if (signal.aborted) return
+        setError("Failed to load versions.")
+      })
+      .finally(() => {
+        if (signal.aborted) return
+        setIsLoading(false)
+      })
+
+    const focusTimeout = window.setTimeout(() => inputRef.current?.focus(), 50)
+
+    return () => {
+      controller.abort()
+      window.clearTimeout(focusTimeout)
+    }
   }, [platform.id])
 
   useEffect(() => {
@@ -116,9 +139,11 @@ function VersionPanel({ platform, onBack }: { platform: Platform; onBack: () => 
   }, [search, versions])
 
   const handleCopy = useCallback(async (url: string) => {
-    try { await navigator.clipboard.writeText(url) } catch { /* noop */ }
-    setCopied(url)
-    setTimeout(() => setCopied(null), 2000)
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopied(url)
+      setTimeout(() => setCopied(null), 2000)
+    } catch { /* noop */ }
   }, [])
 
   return (
@@ -140,6 +165,7 @@ function VersionPanel({ platform, onBack }: { platform: Platform; onBack: () => 
         <span className="text-[12px] text-terminal-green shrink-0">$</span>
         <input
           ref={inputRef}
+          aria-label="Search version number"
           className="flex-1 bg-transparent border-none outline-none font-mono text-[12px] text-foreground placeholder:text-dim caret-terminal-green"
           placeholder="grep version..."
           value={search}
