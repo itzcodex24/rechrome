@@ -22,21 +22,12 @@ export const metadata: Metadata = {
     url: "/",
     siteName: "ReChrome",
     type: "website",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "ReChrome - Download Old Chrome Versions",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "ReChrome - Download Old Chrome Versions",
     description: "Find and download any Chrome version you need. Complete Chrome version archive.",
     creator: "@itzcodex24",
-    images: ["/og-image.png"],
   },
   robots: {
     index: true,
